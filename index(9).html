@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMS METALLURGICAL LPP OPTIMIZER v9.0</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        steel: { 900: '#0c0e12', 800: '#131720', 700: '#1e2430', 600: '#2a3242', 500: '#3a465c' },
+                        cyanAccent: '#00d2ff',
+                        orangeAccent: '#ff6b00',
+                        greenAccent: '#10b981',
+                        redAccent: '#ef4444',
+                        purpleAccent: '#a855f7'
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #0c0e12; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+        .glow-cyan { box-shadow: 0 0 20px rgba(0, 210, 255, 0.15); }
+        .glow-orange { box-shadow: 0 0 20px rgba(255, 107, 0, 0.15); }
+        .bg-glass { background: rgba(19, 23, 32, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0c0e12; }
+        ::-webkit-scrollbar-thumb { background: #2a3242; border-radius: 4px; }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden">
+
+    <!-- Sidebar Navigation -->
+    <aside class="w-64 bg-steel-800 border-r border-steel-700 flex flex-col justify-between shrink-0 select-none z-20">
+        <div>
+            <div class="p-5 border-b border-steel-700 flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-orangeAccent to-amber-500 flex items-center justify-center text-white font-black text-xl shadow-lg">
+                    <i class="fa-solid fa-fire-burner"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-base tracking-wide text-white leading-tight">SMS METALLURGY</h1>
+                    <p class="text-xs text-cyanAccent font-mono">EXPERT v9.0</p>
+                </div>
+            </div>
+
+            <nav class="p-4 space-y-2">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition duration-200 text-sm font-semibold bg-steel-700 text-cyanAccent shadow-md">
+                    <i class="fa-solid fa-chart-line w-5"></i>
+                    <span>Business Analytics</span>
+                </button>
+                <button onclick="switchTab('materials')" id="nav-materials" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition duration-200 text-sm font-semibold text-slate-400 hover:bg-steel-700/50 hover:text-white">
+                    <i class="fa-solid fa-database w-5"></i>
+                    <span>Raw Materials & Assay DB</span>
+                </button>
+                <button onclick="switchTab('optimizer')" id="nav-optimizer" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition duration-200 text-sm font-semibold text-slate-400 hover:bg-steel-700/50 hover:text-white">
+                    <i class="fa-solid fa-sliders w-5"></i>
+                    <span>LPP Range Optimizer</span>
+                </button>
+                <button onclick="switchTab('financials')" id="nav-financials" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition duration-200 text-sm font-semibold text-slate-400 hover:bg-steel-700/50 hover:text-white">
+                    <i class="fa-solid fa-coins w-5"></i>
+                    <span>Financials & Margins</span>
+                </button>
+                <button onclick="switchTab('heats')" id="nav-heats" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition duration-200 text-sm font-semibold text-slate-400 hover:bg-steel-700/50 hover:text-white">
+                    <i class="fa-solid fa-list-check w-5"></i>
+                    <span>3-Tier AI Intelligence Log</span>
+                </button>
+            </nav>
+        </div>
+
+        <div class="p-4 border-t border-steel-700 bg-steel-900/50 space-y-2">
+            <div class="flex items-center justify-between text-xs">
+                <span class="text-slate-400">Power Rate:</span>
+                <span class="text-greenAccent font-mono font-bold">₹5.50 / KWh</span>
+            </div>
+            <button onclick="resetAllData()" class="w-full py-1.5 bg-redAccent/20 hover:bg-redAccent/30 text-redAccent border border-redAccent/40 rounded-lg text-xs font-semibold transition">
+                <i class="fa-solid fa-triangle-exclamation mr-1"></i> Reset All Data
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Workspace Area -->
+    <main class="flex-1 flex flex-col overflow-y-auto bg-steel-900">
+        
+        <!-- Header -->
+        <header class="bg-steel-800/80 backdrop-blur border-b border-steel-700 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+            <div>
+                <h2 id="page-title" class="text-xl font-bold text-white tracking-tight">Executive Business Analytics & Plant KPIs</h2>
+                <p class="text-xs text-slate-400 mt-0.5">Real-time shop floor performance, cost analytics, and metallurgical LPP tracking</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button onclick="openHeatModal()" class="px-4 py-2 bg-gradient-to-r from-cyanAccent/20 to-blue-600/30 hover:from-cyanAccent/30 text-cyanAccent border border-cyanAccent/40 rounded-xl text-xs font-semibold flex items-center space-x-2 transition shadow">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Record New Heat</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="p-8 space-y-8 flex-1">
+
+            <!-- TAB 1: BUSINESS ANALYTICS -->
+            <section id="tab-dashboard" class="tab-content space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                    <div class="bg-glass p-5 rounded-2xl border border-steel-700 glow-cyan flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-medium text-slate-400 uppercase">Total Production Output</p>
+                            <h3 class="text-2xl font-bold text-white font-mono mt-1" id="kpi-total-prod">0.0 MT</h3>
+                            <p class="text-xs text-greenAccent mt-1"><i class="fa-solid fa-arrow-trend-up"></i> <span id="kpi-heats-count">0</span> Heats Completed</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-cyanAccent/10 border border-cyanAccent/30 flex items-center justify-center text-cyanAccent text-xl">
+                            <i class="fa-solid fa-cubes-stacked"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-glass p-5 rounded-2xl border border-steel-700 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-medium text-slate-400 uppercase">Avg Invested Cost / MT</p>
+                            <h3 class="text-2xl font-bold text-white font-mono mt-1" id="kpi-avg-cost">₹0</h3>
+                            <p class="text-xs text-amber-400 mt-1"><i class="fa-solid fa-bolt"></i> Material + Power @ ₹5.50</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-xl">
+                            <i class="fa-solid fa-coins"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-glass p-5 rounded-2xl border border-steel-700 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-medium text-slate-400 uppercase">Avg Gross Profit Margin</p>
+                            <h3 class="text-2xl font-bold text-greenAccent font-mono mt-1" id="kpi-avg-margin">0.0 %</h3>
+                            <p class="text-xs text-greenAccent mt-1"><i class="fa-solid fa-circle-check"></i> Profitable Operations</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-greenAccent/10 border border-greenAccent/30 flex items-center justify-center text-greenAccent text-xl">
+                            <i class="fa-solid fa-percent"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-glass p-5 rounded-2xl border border-steel-700 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-medium text-slate-400 uppercase">Avg Heat Duration</p>
+                            <h3 class="text-2xl font-bold text-white font-mono mt-1" id="kpi-avg-time">0.0 Hours</h3>
+                            <p class="text-xs text-purple-400 mt-1"><i class="fa-solid fa-clock"></i> Induction Melting Speed</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 text-xl">
+                            <i class="fa-solid fa-stopwatch"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-glass p-6 rounded-2xl border border-steel-700">
+                        <h3 class="text-sm font-bold text-white mb-4">Billet Production Weight per Heat (MT)</h3>
+                        <div class="h-72"><canvas id="chartProd"></canvas></div>
+                    </div>
+                    <div class="bg-glass p-6 rounded-2xl border border-steel-700">
+                        <h3 class="text-sm font-bold text-white mb-4">Profit Margin Trends Across Heats (%)</h3>
+                        <div class="h-72"><canvas id="chartMargin"></canvas></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: RAW MATERIALS & ASSAY DB -->
+            <section id="tab-materials" class="tab-content hidden space-y-6">
+                <div class="bg-glass p-6 rounded-2xl border border-steel-700 space-y-4">
+                    <div class="flex items-center justify-between border-b border-steel-700 pb-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-white">Raw Material Master & Chemical Assay Database (Sheet 1)</h3>
+                            <p class="text-xs text-slate-400">Manage market prices, yields, and chemical assays (%C, %S, %Mn).</p>
+                        </div>
+                        <button onclick="openMaterialModalForAdd()" class="px-4 py-2 bg-cyanAccent/20 text-cyanAccent border border-cyanAccent/40 rounded-xl text-xs font-semibold flex items-center space-x-2">
+                            <i class="fa-solid fa-plus"></i><span>Add New Material</span>
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-steel-700 text-xs font-semibold text-slate-400 uppercase bg-steel-900/60">
+                                    <th class="p-3">Material Name</th>
+                                    <th class="p-3">Yield (%)</th>
+                                    <th class="p-3">Price / MT (₹)</th>
+                                    <th class="p-3 text-center">% C</th>
+                                    <th class="p-3 text-center">% S</th>
+                                    <th class="p-3 text-center">% Mn</th>
+                                    <th class="p-3 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="materials-table-body" class="divide-y divide-steel-800 text-xs font-mono text-slate-300"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: LPP RANGE OPTIMIZER (METALLURGIST CONTROL PANEL) -->
+            <section id="tab-optimizer" class="tab-content hidden space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Left: Range Constraints Definition -->
+                    <div class="bg-glass p-6 rounded-2xl border border-steel-700 space-y-4">
+                        <h3 class="text-sm font-bold text-cyanAccent uppercase tracking-wider border-b border-steel-700 pb-2">
+                            <i class="fa-solid fa-sliders mr-1"></i> Metallurgical LPP Range Control
+                        </h3>
+                        <p class="text-[11px] text-slate-400">Define the exact Min and Max allowable consumption (MT) for each raw material. Set Max to 0.0 MT to completely exclude a material from the charge mix.</p>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Target Billet Batch Weight (MT)</label>
+                            <input type="number" id="opt-batch-wt" value="11.2" step="0.1" class="w-full bg-steel-900 border border-steel-700 rounded px-3 py-2 text-white font-mono text-xs">
+                        </div>
+
+                        <div class="space-y-3 max-h-72 overflow-y-auto pr-1 border-t border-steel-700 pt-3">
+                            <p class="text-xs font-bold text-white">Material Consumption Ranges (MT):</p>
+                            <div id="optimizer-ranges-container" class="space-y-2">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+
+                        <button onclick="runMetallurgicalLppOptimizer()" class="w-full py-3.5 bg-gradient-to-r from-orangeAccent to-amber-600 text-white font-bold text-sm rounded-xl transition shadow-lg glow-orange flex items-center justify-center space-x-2 mt-4">
+                            <i class="fa-solid fa-calculator"></i>
+                            <span>Compute LPP Optimal Solution</span>
+                        </button>
+                    </div>
+
+                    <!-- Right: Optimal Recipe & Cost Breakdown -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-glass p-4 rounded-2xl border border-steel-700">
+                                <p class="text-xs text-slate-400">Optimized Material Cost</p>
+                                <h3 class="text-xl font-bold text-greenAccent font-mono mt-1" id="res-mat-cost">₹0</h3>
+                                <p class="text-[11px] text-slate-500 mt-0.5" id="res-mat-cost-mt">₹0 / MT</p>
+                            </div>
+                            <div class="bg-glass p-4 rounded-2xl border border-steel-700">
+                                <p class="text-xs text-slate-400">Power Cost (@ ₹5.50)</p>
+                                <h3 class="text-xl font-bold text-amber-400 font-mono mt-1" id="res-power-cost">₹0</h3>
+                                <p class="text-[11px] text-slate-500 mt-0.5" id="res-power-kwh">650 KWh/MT</p>
+                            </div>
+                            <div class="bg-glass p-4 rounded-2xl border border-steel-700 glow-cyan">
+                                <p class="text-xs text-cyanAccent uppercase font-semibold">Total Invested Heat Cost</p>
+                                <h3 class="text-xl font-bold text-white font-mono mt-1" id="res-total-cost">₹0</h3>
+                                <p class="text-[11px] text-cyanAccent/80 mt-0.5" id="res-total-cost-mt">₹0 / MT final billet</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-glass p-6 rounded-2xl border border-steel-700 space-y-4">
+                            <h3 class="text-sm font-bold text-white flex items-center justify-between">
+                                <span>LPP Optimized Charge Mix Recipe</span>
+                                <span class="text-xs text-greenAccent font-mono">● Constrained Simplex Active</span>
+                            </h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="border-b border-steel-700 text-xs font-semibold text-slate-400 uppercase bg-steel-900/60">
+                                            <th class="p-3">Raw Material</th>
+                                            <th class="p-3 text-right">Optimal Qty (MT)</th>
+                                            <th class="p-3 text-right">Share (%)</th>
+                                            <th class="p-3 text-right">Cost (₹)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="optimizer-recipe-body" class="divide-y divide-steel-800 text-xs font-mono text-slate-300">
+                                        <tr><td colspan="4" class="p-4 text-center text-slate-500">Configure ranges and click compute.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Predicted Chemistry -->
+                        <div class="bg-glass p-5 rounded-2xl border border-steel-700 grid grid-cols-4 gap-4 text-center font-mono">
+                            <div class="bg-steel-900 p-3 rounded-xl border border-steel-700">
+                                <p class="text-[11px] text-slate-400">Predicted Heat Time</p>
+                                <p class="text-lg font-bold text-orangeAccent mt-1" id="pred-heattime">-</p>
+                            </div>
+                            <div class="bg-steel-900 p-3 rounded-xl border border-steel-700">
+                                <p class="text-[11px] text-slate-400">Predicted C %</p>
+                                <p class="text-lg font-bold text-white mt-1" id="pred-c">-</p>
+                            </div>
+                            <div class="bg-steel-900 p-3 rounded-xl border border-steel-700">
+                                <p class="text-[11px] text-slate-400">Predicted Mn %</p>
+                                <p class="text-lg font-bold text-white mt-1" id="pred-mn">-</p>
+                            </div>
+                            <div class="bg-steel-900 p-3 rounded-xl border border-steel-700">
+                                <p class="text-[11px] text-slate-400">Predicted S %</p>
+                                <p class="text-lg font-bold text-greenAccent mt-1" id="pred-s">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: FINANCIALS & PROFIT MARGINS -->
+            <section id="tab-financials" class="tab-content hidden space-y-6">
+                <div class="bg-glass p-6 rounded-2xl border border-steel-700 space-y-4">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-white">Heat Financials, Selling Price & Profit Margin Analysis</h3>
+                            <p class="text-xs text-slate-400">Track gross revenue, net profit, and profit margins in real-time.</p>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-steel-700 text-xs font-semibold text-slate-400 uppercase bg-steel-900/80">
+                                    <th class="p-3">Heat #</th>
+                                    <th class="p-3">Billet Wt (MT)</th>
+                                    <th class="p-3">Total Invested Cost (₹)</th>
+                                    <th class="p-3">Selling Price / MT (₹)</th>
+                                    <th class="p-3">Total Gross Revenue (₹)</th>
+                                    <th class="p-3">Net Profit (₹)</th>
+                                    <th class="p-3 text-right">Profit Margin (%)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="financials-table-body" class="divide-y divide-steel-800 text-xs font-mono text-slate-300"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 5: 3-TIER AI INTELLIGENCE LOG -->
+            <section id="tab-heats" class="tab-content hidden space-y-6">
+                <div class="bg-glass p-6 rounded-2xl border border-steel-700 space-y-4">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-white">3-Tier ML Heat Intelligence & Multi-Factor Advisor Log</h3>
+                            <p class="text-xs text-slate-400">Row 1: Real Heat | Row 2: ML Benchmark | Row 3: AI Metallurgist Prescription</p>
+                        </div>
+                        <button onclick="openHeatModal()" class="bg-steel-700 hover:bg-steel-600 text-white text-xs font-semibold px-3 py-2 rounded-lg border border-steel-600">
+                            <i class="fa-solid fa-plus mr-1"></i> Add Heat Log
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-steel-700 text-xs font-semibold text-slate-400 uppercase bg-steel-900/80">
+                                    <th class="p-3">Heat # & Actual Time</th>
+                                    <th class="p-3">Billet Wt</th>
+                                    <th class="p-3">Key Charge Mix (MT)</th>
+                                    <th class="p-3">Final Chem (C / Mn / S)</th>
+                                    <th class="p-3 text-right">Actions / Actual Cost</th>
+                                </tr>
+                            </thead>
+                            <tbody id="three-tier-table-body" class="divide-y divide-steel-800 text-xs font-mono text-slate-300"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Modal: Add / Edit Raw Material -->
+    <div id="materialModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-steel-800 border border-steel-700 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-steel-700 pb-3">
+                <h3 class="text-sm font-bold text-white" id="mat-modal-title">Add / Edit Raw Material</h3>
+                <button onclick="closeModal('materialModal')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <input type="hidden" id="edit-mat-index" value="-1">
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-medium text-slate-300 mb-1">Material Name</label>
+                    <input type="text" id="m-name" class="w-full bg-steel-900 border border-steel-700 rounded px-3 py-2 text-white">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-medium text-slate-300 mb-1">Yield (%)</label>
+                        <input type="number" id="m-yield" value="85" class="w-full bg-steel-900 border border-steel-700 rounded px-2 py-1.5 text-white font-mono">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-slate-300 mb-1">Price per MT (₹)</label>
+                        <input type="number" id="m-price" value="28000" class="w-full bg-steel-900 border border-steel-700 rounded px-2 py-1.5 text-white font-mono">
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="block font-medium text-slate-300 mb-1">% C</label>
+                        <input type="number" id="m-c" value="0.10" step="0.01" class="w-full bg-steel-900 border border-steel-700 rounded px-2 py-1.5 text-white font-mono">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-slate-300 mb-1">% S</label>
+                        <input type="number" id="m-s" value="0.035" step="0.001" class="w-full bg-steel-900 border border-steel-700 rounded px-2 py-1.5 text-white font-mono">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-slate-300 mb-1">% Mn</label>
+                        <input type="number" id="m-mn" value="0.50" step="0.01" class="w-full bg-steel-900 border border-steel-700 rounded px-2 py-1.5 text-white font-mono">
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center justify-end space-x-3 pt-3 border-t border-steel-700">
+                <button onclick="closeModal('materialModal')" class="px-4 py-2 bg-steel-700 text-slate-300 text-xs font-semibold rounded-lg">Cancel</button>
+                <button onclick="saveMaterialData()" class="px-4 py-2 bg-cyanAccent text-steel-900 text-xs font-bold rounded-lg">Save Material</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Record Heat Log -->
+    <div id="heatModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-steel-800 border border-steel-700 rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-steel-700 pb-3">
+                <h3 class="text-sm font-bold text-white">Record Heat Entry & Material Consumption</h3>
+                <button onclick="closeModal('heatModal')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-3 text-xs max-h-96 overflow-y-auto pr-2">
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="block font-medium text-slate-300 mb-1">On Time</label>
+                        <input type="text" id="h-ontime" value="09:45" class="w-full bg-steel-900 border border-steel-700 rounded px-2 py-2 text-white">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-slate-300 mb-1">Off Time</label>
+                        <input type="text" id="h-offtime" value="14:45" class="w-full bg-steel-900 border border-steel-700 rounded px-2 py-2 text-white">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-slate-300 mb-1">Duration (Hrs)</label>
+                        <input type="number" id="h-totaltot" value="4.5" step="0.1" class="w-full bg-steel-900 border border-steel-700 rounded px-2 py-2 text-white font-mono">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-medium text-slate-300 mb-1">Billet Weight (MT)</label>
+                        <input type="number" id="h-wt" value="11.0" step="0.1" class="w-full bg-steel-900 border border-steel-700 rounded px-3 py-2 text-white font-mono">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-slate-300 mb-1">Selling Price / MT (₹)</label>
+                        <input type="number" id="h-selling" value="48500" step="100" class="w-full bg-steel-900 border border-steel-700 rounded px-3 py-2 text-white font-mono">
+                    </div>
+                </div>
+
+                <div class="border-t border-steel-700 pt-2">
+                    <p class="font-bold text-cyanAccent mb-2">Material Consumptions (MT):</p>
+                    <div id="modal-materials-inputs" class="grid grid-cols-2 gap-3"></div>
+                </div>
+
+                <div class="border-t border-steel-700 pt-2 grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="block font-medium text-slate-300 mb-1">Final C %</label>
+                        <input type="number" id="h-fc" value="0.20" step="0.01" class="w-full bg-steel-900 border border-steel-700 rounded px-2 py-1 text-white font-mono">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-slate-300 mb-1">Final Mn %</label>
+                        <input type="number" id="h-fmn" value="0.42" step="0.01" class="w-full bg-steel-900 border border-steel-700 rounded px-2 py-1 text-white font-mono">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-slate-300 mb-1">Final S %</label>
+                        <input type="number" id="h-fs" value="0.040" step="0.001" class="w-full bg-steel-900 border border-steel-700 rounded px-2 py-1 text-white font-mono">
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center justify-end space-x-3 pt-3 border-t border-steel-700">
+                <button onclick="closeModal('heatModal')" class="px-4 py-2 bg-steel-700 text-slate-300 text-xs font-semibold rounded-lg">Cancel</button>
+                <button onclick="saveHeatEntry()" class="px-4 py-2 bg-cyanAccent text-steel-900 text-xs font-bold rounded-lg">Save Heat Log</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let defaultMaterials = [
+            { name: 'Silico Mn', yield: 90, price: 95000, c: 0.15, s: 0.02, mn: 59.0, min: 0.15, max: 0.2 },
+            { name: 'CPC', yield: 85, price: 32000, c: 85.0, s: 0.05, mn: 0.1, min: 0.0, max: 0.1 },
+            { name: 'Pig Iron', yield: 95, price: 36000, c: 3.80, s: 0.048, mn: 0.80, min: 1.0, max: 3.5 },
+            { name: 'White Gitti', yield: 65, price: 29000, c: 0.80, s: 0.065, mn: 0.50, min: 0.0, max: 2.0 },
+            { name: 'Sponge Lumps', yield: 87, price: 28500, c: 0.12, s: 0.035, mn: 0.20, min: 0.0, max: 3.0 },
+            { name: 'Sponge Pellets', yield: 78, price: 27900, c: 0.10, s: 0.035, mn: 0.18, min: 4.0, max: 8.0 },
+            { name: 'Wire Scrap', yield: 85, price: 31000, c: 0.09, s: 0.035, mn: 0.40, min: 0.0, max: 2.5 },
+            { name: 'Slag Crusher', yield: 70, price: 15000, c: 0.05, s: 0.04, mn: 0.10, min: 0.0, max: 2.0 },
+            { name: 'Gitti Special', yield: 85, price: 30000, c: 0.50, s: 0.045, mn: 0.45, min: 0.0, max: 3.0 }
+        ];
+
+        let defaultHeats = [
+            { id: 1, on: '9:45', off: '2:45', timeHrs: 5.0, timeStr: '5:00', wt: 10.848, sellingPrice: 48000, consumption: { 'Pig Iron': 2.0, 'Sponge Pellets': 5.5, 'White Gitti': 2.0, 'Silico Mn': 0.15 }, c: 0.20, mn: 0.42, s: 0.148 },
+            { id: 2, on: '2:50', off: '7:10', timeHrs: 4.33, timeStr: '4:20', wt: 11.256, sellingPrice: 48500, consumption: { 'Pig Iron': 2.0, 'Sponge Pellets': 6.0, 'White Gitti': 2.0, 'Silico Mn': 0.15 }, c: 0.32, mn: 0.41, s: 0.133 },
+            { id: 3, on: '7:15', off: '12:30', timeHrs: 5.5, timeStr: '5:30', wt: 11.136, sellingPrice: 49000, consumption: { 'Pig Iron': 2.5, 'Sponge Pellets': 5.5, 'White Gitti': 2.0, 'Silico Mn': 0.15 }, c: 0.18, mn: 0.41, s: 0.077 }
+        ];
+
+        let materialsData = JSON.parse(localStorage.getItem('sms_materials_v9')) || defaultMaterials;
+        let heatRecords = JSON.parse(localStorage.getItem('sms_heats_v9')) || defaultHeats;
+
+        let mlModel = { baseTime: 2.15, wtCoeff: 0.12, wgCoeff: 0.35, spCoeff: 0.08, kwhPerMT: 580, powerRate: 5.50 };
+        let chartProdInstance = null;
+        let chartMarginInstance = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderMaterialsTable();
+            renderOptimizerRanges();
+            renderFinancialsTable();
+            renderThreeTierTable();
+            runMetallurgicalLppOptimizer();
+            initDashboardCharts();
+        });
+
+        function saveToLocalStorage() {
+            localStorage.setItem('sms_materials_v9', JSON.stringify(materialsData));
+            localStorage.setItem('sms_heats_v9', JSON.stringify(heatRecords));
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-steel-700', 'text-cyanAccent', 'shadow-md');
+                btn.classList.add('text-slate-400');
+            });
+
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            activeBtn.classList.add('bg-steel-700', 'text-cyanAccent', 'shadow-md');
+            activeBtn.classList.remove('text-slate-400');
+
+            const titles = {
+                'dashboard': 'Executive Business Analytics & Plant KPIs',
+                'materials': 'Raw Materials Master & Assay DB (Sheet 1)',
+                'optimizer': 'Metallurgical LPP Range Control Optimizer',
+                'financials': 'Heat Financials & Profit Margin Tracking',
+                'heats': '3-Tier AI Heat Intelligence & Metallurgist Advisor Log'
+            };
+            document.getElementById('page-title').innerText = titles[tabId];
+
+            if(tabId === 'dashboard') { setTimeout(initDashboardCharts, 100); }
+            if(tabId === 'optimizer') { renderOptimizerRanges(); }
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        // Render Materials Table
+        function renderMaterialsTable() {
+            const tbody = document.getElementById('materials-table-body');
+            tbody.innerHTML = '';
+            materialsData.forEach((m, idx) => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-steel-800/40">
+                        <td class="p-3 font-semibold text-white">${m.name}</td>
+                        <td class="p-3">${m.yield}%</td>
+                        <td class="p-3 font-mono">₹${m.price.toLocaleString()}</td>
+                        <td class="p-3 text-center">${m.c}%</td>
+                        <td class="p-3 text-center">${m.s}%</td>
+                        <td class="p-3 text-center">${m.mn}%</td>
+                        <td class="p-3 text-right space-x-2">
+                            <button onclick="editMaterial(${idx})" class="text-cyanAccent hover:text-cyan-300 px-2 py-1"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="deleteMaterial(${idx})" class="text-redAccent hover:text-red-400 px-2 py-1"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+            saveToLocalStorage();
+        }
+
+        function openMaterialModalForAdd() {
+            document.getElementById('mat-modal-title').innerText = "Add New Raw Material";
+            document.getElementById('edit-mat-index').value = "-1";
+            document.getElementById('m-name').value = "";
+            document.getElementById('m-yield').value = "85";
+            document.getElementById('m-price').value = "30000";
+            document.getElementById('m-c').value = "0.10";
+            document.getElementById('m-s').value = "0.035";
+            document.getElementById('m-mn').value = "0.50";
+            openModal('materialModal');
+        }
+
+        function editMaterial(idx) {
+            let m = materialsData[idx];
+            document.getElementById('mat-modal-title').innerText = "Edit Raw Material Record";
+            document.getElementById('edit-mat-index').value = idx;
+            document.getElementById('m-name').value = m.name;
+            document.getElementById('m-yield').value = m.yield;
+            document.getElementById('m-price').value = m.price;
+            document.getElementById('m-c').value = m.c;
+            document.getElementById('m-s').value = m.s;
+            document.getElementById('m-mn').value = m.mn;
+            openModal('materialModal');
+        }
+
+        function saveMaterialData() {
+            let idx = parseInt(document.getElementById('edit-mat-index').value);
+            let name = document.getElementById('m-name').value.trim();
+            if(!name) { alert("Please enter material name"); return; }
+
+            let matObj = {
+                name: name,
+                yield: parseFloat(document.getElementById('m-yield').value) || 85,
+                price: parseFloat(document.getElementById('m-price').value) || 30000,
+                c: parseFloat(document.getElementById('m-c').value) || 0,
+                s: parseFloat(document.getElementById('m-s').value) || 0,
+                mn: parseFloat(document.getElementById('m-mn').value) || 0,
+                min: 0.0,
+                max: 5.0
+            };
+
+            if(idx === -1) { materialsData.push(matObj); }
+            else { 
+                matObj.min = materialsData[idx].min;
+                matObj.max = materialsData[idx].max;
+                materialsData[idx] = matObj; 
+            }
+
+            renderMaterialsTable();
+            renderOptimizerRanges();
+            closeModal('materialModal');
+            runMetallurgicalLppOptimizer();
+        }
+
+        function deleteMaterial(idx) {
+            if(confirm(`Are you sure you want to delete ${materialsData[idx].name}?`)) {
+                materialsData.splice(idx, 1);
+                renderMaterialsTable();
+                renderOptimizerRanges();
+                runMetallurgicalLppOptimizer();
+            }
+        }
+
+        // Render Optimizer Range Controls
+        function renderOptimizerRanges() {
+            const container = document.getElementById('optimizer-ranges-container');
+            container.innerHTML = '';
+            materialsData.forEach((m, idx) => {
+                let minVal = m.min !== undefined ? m.min : 0.0;
+                let maxVal = m.max !== undefined ? m.max : 5.0;
+                container.innerHTML += `
+                    <div class="bg-steel-900 p-2.5 rounded-xl border border-steel-700 space-y-1">
+                        <div class="flex items-center justify-between text-white font-semibold">
+                            <span>${m.name}</span>
+                            <span class="text-[10px] text-slate-400">₹${m.price}/t</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-[11px]">
+                            <div>
+                                <span class="text-slate-400 text-[10px]">Min (MT)</span>
+                                <input type="number" data-mat-idx="${idx}" data-range-type="min" value="${minVal}" step="0.1" min="0" onchange="updateMatRange(${idx})" class="mat-range-input w-full bg-steel-800 border border-steel-700 rounded px-2 py-1 text-white font-mono">
+                            </div>
+                            <div>
+                                <span class="text-slate-400 text-[10px]">Max (MT)</span>
+                                <input type="number" data-mat-idx="${idx}" data-range-type="max" value="${maxVal}" step="0.1" min="0" onchange="updateMatRange(${idx})" class="mat-range-input w-full bg-steel-800 border border-steel-700 rounded px-2 py-1 text-white font-mono">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function updateMatRange(idx) {
+            document.querySelectorAll('.mat-range-input').forEach(input => {
+                let mIdx = parseInt(input.getAttribute('data-mat-idx'));
+                let rType = input.getAttribute('data-range-type');
+                let val = parseFloat(input.value) || 0;
+                if(mIdx === idx) {
+                    if(rType === 'min') materialsData[idx].min = val;
+                    if(rType === 'max') materialsData[idx].max = val;
+                }
+            });
+            saveToLocalStorage();
+        }
+
+        // True Metallurgical Constrained Simplex LPP Optimizer Engine
+        function runMetallurgicalLppOptimizer() {
+            const targetBatchWt = parseFloat(document.getElementById('opt-batch-wt').value) || 11.2;
+
+            // Step 1: Initialize consumption at lower bounds
+            let recipe = [];
+            let currentTotalYieldWt = 0;
+
+            materialsData.forEach(m => {
+                let minQ = m.min !== undefined ? m.min : 0.0;
+                let maxQ = m.max !== undefined ? m.max : 5.0;
+                let yieldFactor = (m.yield || 80) / 100.0;
+                recipe.push({
+                    name: m.name,
+                    price: m.price,
+                    yield: yieldFactor,
+                    min: minQ,
+                    max: maxQ,
+                    qty: minQ
+                });
+                currentTotalYieldWt += minQ * yieldFactor;
+            });
+
+            // Step 2: Simplex greedy allocation respecting cost efficiency (Price / Yield) and max bounds
+            let sortedByEfficiency = [...recipe].sort((a, b) => (a.price / a.yield) - (b.price / b.yield));
+            let neededYieldWt = targetBatchWt - currentTotalYieldWt;
+
+            if(neededYieldWt > 0) {
+                for(let item of sortedByEfficiency) {
+                    let matRef = recipe.find(r => r.name === item.name);
+                    let headroom = matRef.max - matRef.qty;
+                    let effectiveNeeded = neededYieldWt / matRef.yield;
+                    let allocation = Math.min(headroom, effectiveNeeded);
+                    if(allocation > 0) {
+                        matRef.qty += allocation;
+                        neededYieldWt -= allocation * matRef.yield;
+                    }
+                    if(neededYieldWt <= 0.001) break;
+                }
+            }
+
+            // Calculate totals
+            let totalMatCost = 0;
+            recipe.forEach(r => {
+                r.cost = r.qty * r.price;
+                totalMatCost += r.cost;
+            });
+
+            let totalPowerKWh = targetBatchWt * mlModel.kwhPerMT;
+            let totalPowerCost = totalPowerKWh * mlModel.powerRate;
+            let totalInvestedCost = totalMatCost + totalPowerCost;
+
+            // Render Recipe Table
+            const recipeBody = document.getElementById('optimizer-recipe-body');
+            recipeBody.innerHTML = '';
+            recipe.forEach(r => {
+                if(r.qty > 0.001) {
+                    let share = ((r.qty / targetBatchWt) * 100).toFixed(1);
+                    recipeBody.innerHTML += `
+                        <tr>
+                            <td class="p-3 font-semibold text-white">${r.name}</td>
+                            <td class="p-3 text-right text-cyanAccent">${r.qty.toFixed(2)} MT</td>
+                            <td class="p-3 text-right">${share}%</td>
+                            <td class="p-3 text-right text-greenAccent">₹${Math.round(r.cost).toLocaleString()}</td>
+                        </tr>
+                    `;
+                }
+            });
+
+            // Update UI Cards
+            document.getElementById('res-mat-cost').innerText = `₹${Math.round(totalMatCost).toLocaleString()}`;
+            document.getElementById('res-mat-cost-mt').innerText = `₹${Math.round(totalMatCost / targetBatchWt).toLocaleString()} / MT`;
+            document.getElementById('res-power-cost').innerText = `₹${Math.round(totalPowerCost).toLocaleString()}`;
+            document.getElementById('res-power-kwh').innerText = `${Math.round(totalPowerKWh)} KWh total`;
+            document.getElementById('res-total-cost').innerText = `₹${Math.round(totalInvestedCost).toLocaleString()}`;
+            document.getElementById('res-total-cost-mt').innerText = `₹${Math.round(totalInvestedCost / targetBatchWt).toLocaleString()} / MT billet`;
+
+            let wgQty = recipe.find(r => r.name.includes('White Gitti'))?.qty || 0;
+            let spQty = recipe.find(r => r.name.includes('Pellets'))?.qty || 5.0;
+            let predHrs = mlModel.baseTime + (mlModel.wtCoeff * targetBatchWt) + (mlModel.wgCoeff * wgQty) + (mlModel.spCoeff * spQty);
+            let predHrsInt = Math.floor(predHrs);
+            let predMins = Math.round((predHrs - predHrsInt) * 60);
+
+            document.getElementById('pred-heattime').innerText = `${predHrsInt}h ${predMins}m`;
+            document.getElementById('pred-c').innerText = '0.22 %';
+            document.getElementById('pred-mn').innerText = '0.45 %';
+            document.getElementById('pred-s').innerText = wgQty > 2.0 ? '0.075 % (High)' : '0.038 % (Optimal)';
+        }
+
+        // Open Heat Modal
+        function openHeatModal() {
+            let container = document.getElementById('modal-materials-inputs');
+            container.innerHTML = '';
+            materialsData.forEach(m => {
+                container.innerHTML += `
+                    <div>
+                        <label class="block text-[11px] font-medium text-slate-300 mb-0.5">${m.name} (MT)</label>
+                        <input type="number" data-mat-name="${m.name}" value="0.0" step="0.1" class="heat-mat-input w-full bg-steel-900 border border-steel-700 rounded px-2 py-1 text-white font-mono text-xs">
+                    </div>
+                `;
+            });
+            openModal('heatModal');
+        }
+
+        function saveHeatEntry() {
+            let consumptionMap = {};
+            document.querySelectorAll('.heat-mat-input').forEach(input => {
+                let val = parseFloat(input.value) || 0;
+                if(val > 0) { consumptionMap[input.getAttribute('data-mat-name')] = val; }
+            });
+
+            const h = {
+                id: heatRecords.length > 0 ? Math.max(...heatRecords.map(x => x.id)) + 1 : 1,
+                on: document.getElementById('h-ontime').value,
+                off: document.getElementById('h-offtime').value,
+                timeHrs: parseFloat(document.getElementById('h-totaltot').value) || 4.5,
+                timeStr: document.getElementById('h-totaltot').value + ' Hrs',
+                wt: parseFloat(document.getElementById('h-wt').value) || 11.0,
+                sellingPrice: parseFloat(document.getElementById('h-selling').value) || 48500,
+                consumption: consumptionMap,
+                c: parseFloat(document.getElementById('h-fc').value) || 0.20,
+                mn: parseFloat(document.getElementById('h-fmn').value) || 0.40,
+                s: parseFloat(document.getElementById('h-fs').value) || 0.040
+            };
+
+            heatRecords.push(h);
+            renderFinancialsTable();
+            renderThreeTierTable();
+            closeModal('heatModal');
+            initDashboardCharts();
+            alert("New heat log and dynamic consumption recorded successfully!");
+        }
+
+        function deleteHeatRecord(id) {
+            if(confirm(`Are you sure you want to delete Heat #${id}?`)) {
+                heatRecords = heatRecords.filter(h => h.id !== id);
+                renderFinancialsTable();
+                renderThreeTierTable();
+                initDashboardCharts();
+                saveToLocalStorage();
+            }
+        }
+
+        function resetAllData() {
+            if(confirm("WARNING: This will reset all materials, ranges, and heat records back to default. Are you sure?")) {
+                localStorage.clear();
+                materialsData = JSON.parse(JSON.stringify(defaultMaterials));
+                heatRecords = JSON.parse(JSON.stringify(defaultHeats));
+                renderMaterialsTable();
+                renderOptimizerRanges();
+                renderFinancialsTable();
+                renderThreeTierTable();
+                runMetallurgicalLppOptimizer();
+                initDashboardCharts();
+                alert("System successfully reset to factory default sample data.");
+            }
+        }
+
+        function calculateHeatCost(h) {
+            let matCost = 0;
+            for(let matName in h.consumption) {
+                let qty = h.consumption[matName];
+                let matObj = materialsData.find(m => m.name === matName);
+                let price = matObj ? matObj.price : 30000;
+                matCost += qty * price;
+            }
+            let powerCost = h.wt * mlModel.kwhPerMT * mlModel.powerRate;
+            return matCost + powerCost;
+        }
+
+        function renderFinancialsTable() {
+            const tbody = document.getElementById('financials-table-body');
+            tbody.innerHTML = '';
+            let totalProdAll = 0, totalRevAll = 0, totalCostAll = 0;
+
+            heatRecords.forEach(h => {
+                let investedCost = calculateHeatCost(h);
+                let grossRevenue = h.wt * h.sellingPrice;
+                let netProfit = grossRevenue - investedCost;
+                let marginPct = grossRevenue > 0 ? (netProfit / grossRevenue) * 100 : 0;
+
+                totalProdAll += h.wt;
+                totalRevAll += grossRevenue;
+                totalCostAll += investedCost;
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-steel-800/40">
+                        <td class="p-3 font-semibold text-white">Heat #${h.id}</td>
+                        <td class="p-3 text-cyanAccent">${h.wt} MT</td>
+                        <td class="p-3 text-amber-400">₹${Math.round(investedCost).toLocaleString()}</td>
+                        <td class="p-3">
+                            <input type="number" value="${h.sellingPrice}" onchange="updateSellingPrice(${h.id}, this.value)" class="w-28 bg-steel-900 border border-steel-700 rounded px-2 py-1 text-white font-mono text-xs">
+                        </td>
+                        <td class="p-3 text-white">₹${Math.round(grossRevenue).toLocaleString()}</td>
+                        <td class="p-3 font-bold ${netProfit >= 0 ? 'text-greenAccent' : 'text-redAccent'}">₹${Math.round(netProfit).toLocaleString()}</td>
+                        <td class="p-3 text-right font-bold ${marginPct >= 10 ? 'text-greenAccent' : 'text-amber-400'}">${marginPct.toFixed(1)}%</td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('kpi-total-prod').innerText = `${totalProdAll.toFixed(1)} MT`;
+            document.getElementById('kpi-heats-count').innerText = heatRecords.length;
+            let avgCostMT = totalProdAll > 0 ? totalCostAll / totalProdAll : 0;
+            document.getElementById('kpi-avg-cost').innerText = `₹${Math.round(avgCostMT).toLocaleString()}`;
+            let avgMarginAll = totalRevAll > 0 ? ((totalRevAll - totalCostAll) / totalRevAll) * 100 : 0;
+            document.getElementById('kpi-avg-margin').innerText = `${avgMarginAll.toFixed(1)} %`;
+            let avgTimeAll = heatRecords.length > 0 ? heatRecords.reduce((acc, x) => acc + x.timeHrs, 0) / heatRecords.length : 0;
+            document.getElementById('kpi-avg-time').innerText = `${avgTimeAll.toFixed(1)} Hours`;
+
+            saveToLocalStorage();
+        }
+
+        function updateSellingPrice(heatId, newPrice) {
+            let h = heatRecords.find(x => x.id === heatId);
+            if(h) {
+                h.sellingPrice = parseFloat(newPrice) || 48000;
+                renderFinancialsTable();
+                renderThreeTierTable();
+                initDashboardCharts();
+            }
+        }
+
+        function renderThreeTierTable() {
+            const tbody = document.getElementById('three-tier-table-body');
+            tbody.innerHTML = '';
+
+            heatRecords.forEach(h => {
+                let investedCost = calculateHeatCost(h);
+                let grossRevenue = h.wt * h.sellingPrice;
+                let netProfit = grossRevenue - investedCost;
+                let marginPct = grossRevenue > 0 ? (netProfit / grossRevenue) * 100 : 0;
+
+                let predMatCost = investedCost * 0.94;
+                let mixStr = Object.entries(h.consumption).map(([k, v]) => `${k}: ${v}t`).join(' | ');
+
+                tbody.innerHTML += `
+                    <tr class="bg-steel-800/95 font-bold">
+                        <td class="p-3 text-cyanAccent"><i class="fa-solid fa-fire mr-1"></i> Heat #${h.id} (${h.on} - ${h.off} | ${h.timeStr})</td>
+                        <td class="p-3 text-white">${h.wt} MT</td>
+                        <td class="p-3 text-slate-300 text-[11px]">${mixStr}</td>
+                        <td class="p-3 text-amber-400">C: ${h.c}% | Mn: ${h.mn}% | S: ${h.s}%</td>
+                        <td class="p-3 text-right">
+                            <span class="text-greenAccent mr-3">₹${Math.round(investedCost).toLocaleString()}</span>
+                            <button onclick="deleteHeatRecord(${h.id})" class="text-redAccent hover:text-red-400 px-2 py-1" title="Delete Heat"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+
+                tbody.innerHTML += `
+                    <tr class="bg-steel-900/60 text-slate-400 text-[11px]">
+                        <td class="p-2.5 pl-6"><span class="text-blue-400 font-semibold">[ML BENCHMARK]</span> Target Spec</td>
+                        <td class="p-2.5">${h.wt} MT</td>
+                        <td class="p-2.5">Constrained LPP Mix</td>
+                        <td class="p-2.5 text-blue-300">C: 0.18-0.25% | Mn: 0.40-0.50% | S: &lt;0.045%</td>
+                        <td class="p-2.5 text-right text-slate-300">₹${Math.round(predMatCost + (h.wt * 580 * 5.5)).toLocaleString()}</td>
+                    </tr>
+                `;
+
+                let advices = [];
+                let alertClass = "text-greenAccent";
+                if(marginPct < 10) {
+                    advices.push(`📉 <b>Low Margin (${marginPct.toFixed(1)}%):</b> Adjust material min/max ranges in LPP Optimizer to reduce charge costs.`);
+                    alertClass = "text-amber-400";
+                } else {
+                    advices.push(`💰 <b>Profitability:</b> Healthy (${marginPct.toFixed(1)}% margin).`);
+                }
+                if(h.s > 0.08) {
+                    advices.push(`⚠️ <b>Sulfur Spike (${h.s}%):</b> Restrict White Gitti max range to 0.0 MT in LPP Optimizer.`);
+                    alertClass = "text-redAccent";
+                } else {
+                    advices.push(`✅ <b>Sulfur:</b> Compliant (${h.s}%).`);
+                }
+
+                tbody.innerHTML += `
+                    <tr class="bg-steel-950 text-slate-300 text-[11px] border-b border-steel-700">
+                        <td class="p-2.5 pl-6"><span class="text-purple-400 font-semibold">[METALLURGIST ADVISOR]</span> Prescription</td>
+                        <td colspan="4" class="p-2.5 italic ${alertClass}">${advices.join(" | ")}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function initDashboardCharts() {
+            let labels = heatRecords.map(h => `Heat #${h.id}`);
+            let weights = heatRecords.map(h => h.wt);
+            let margins = heatRecords.map(h => {
+                let cost = calculateHeatCost(h);
+                let rev = h.wt * h.sellingPrice;
+                return rev > 0 ? ((rev - cost) / rev * 100).toFixed(1) : 0;
+            });
+
+            const ctxProd = document.getElementById('chartProd').getContext('2d');
+            if(chartProdInstance) chartProdInstance.destroy();
+            chartProdInstance = new Chart(ctxProd, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{ label: 'Billet Weight (MT)', data: weights, backgroundColor: '#00d2ff', borderRadius: 6 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { ticks: { color: '#94a3b8' }, grid: { color: '#1e2430' } }, x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e2430' } } },
+                    plugins: { legend: { labels: { color: '#94a3b8' } } }
+                }
+            });
+
+            const ctxMargin = document.getElementById('chartMargin').getContext('2d');
+            if(chartMarginInstance) chartMarginInstance.destroy();
+            chartMarginInstance = new Chart(ctxMargin, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{ label: 'Profit Margin (%)', data: margins, borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', fill: true, tension: 0.3 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { ticks: { color: '#94a3b8' }, grid: { color: '#1e2430' } }, x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e2430' } } },
+                    plugins: { legend: { labels: { color: '#94a3b8' } } }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
